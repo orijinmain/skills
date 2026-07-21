@@ -1,6 +1,6 @@
 # skills
 
-Reusable agent skills maintained by [geeguin4060](https://github.com/geeguin4060). Each skill is self-contained under `skills/` and can be discovered and installed with the open [`skills` CLI](https://github.com/vercel-labs/skills).
+Reusable agent skills maintained by [jjinkang](https://github.com/jjinkang). Each skill is self-contained under `skills/` and can be discovered and installed with the open [`skills` CLI](https://github.com/vercel-labs/skills).
 
 ## Catalog
 
@@ -13,13 +13,13 @@ Reusable agent skills maintained by [geeguin4060](https://github.com/geeguin4060
 Interactively browse the skills in this repository:
 
 ```bash
-npx skills@latest add geeguin4060/skills
+npx skills@latest add jjinkang/skills
 ```
 
 Install the orchestration skill globally for Codex without prompts:
 
 ```bash
-npx skills@latest add geeguin4060/skills \
+npx skills@latest add jjinkang/skills \
   --skill orchestrate-codex-agents \
   --agent codex \
   --global \
