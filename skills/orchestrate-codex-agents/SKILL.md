@@ -28,24 +28,21 @@ Keep Sol responsible for requirements, decomposition, authority, conflict resolu
 - Cap automatic escalation at three hops and a builder-reviewer correction loop at one pass. Have Sol take over after a circuit breaker trips.
 - Do not spawn agents for trivial tasks or use escalation merely because work is slow or verbose.
 
-## Install or update the portable policy
+## Install or update the complete setup
 
-When the user asks to configure a fresh environment, prefer the public bootstrap because it installs the skill, agents, managed policy, and configuration together with conflict checks and backups:
-
-```bash
-npx @orijinmain/codex-orchestration@latest setup
-```
-
-Use the bundled installer as an offline or manual fallback:
+When the user asks to configure an environment, use the public bootstrap. It installs or updates the skill, custom agents, managed policy, and required configuration together with conflict checks and backups:
 
 ```bash
-python3 scripts/install.py --dry-run
-python3 scripts/install.py
+npx @orijinmain/codex-orchestration setup
 ```
 
-Pass `--codex-home PATH` for a non-default Codex home. Existing differing agent files are preserved unless the user explicitly authorizes `--force`; forced replacements receive timestamped backups. The fallback installer manages only its marked block in `AGENTS.md` and does not rewrite `config.toml`.
+Check the installation without writing:
 
-After installation, inspect `assets/config.snippet.toml` and merge the required `[agents]` values into the target configuration with `apply_patch`. Preserve unrelated settings. Start a new Codex task so the new global guidance and custom agents are loaded.
+```bash
+npx @orijinmain/codex-orchestration status
+```
+
+Pass `--codex-home PATH` for a non-default Codex home and `--dry-run` to preview changes. Existing differing managed files and configuration values are preserved unless the user explicitly authorizes `--force`; replacements receive timestamped backups. Start a new Codex task after setup so the installed guidance and custom agents are loaded.
 
 ## Maintain the skill
 

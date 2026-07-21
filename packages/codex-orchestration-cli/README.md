@@ -3,21 +3,21 @@
 Safely install the `orchestrate-codex-agents` skill, Terra and Luna custom agents, managed global guidance, and the required Codex configuration.
 
 ```bash
-npx @orijinmain/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration setup
 ```
 
 For a persistent command, install the same package globally:
 
 ```bash
-npm install --global @orijinmain/codex-orchestration@latest
+npm install --global @orijinmain/codex-orchestration
 codex-orchestration setup
 ```
 
 The command previews its plan and asks before writing. Existing differing skill or agent files are treated as conflicts. Review them before opting into replacement:
 
 ```bash
-npx @orijinmain/codex-orchestration@latest setup --dry-run
-npx @orijinmain/codex-orchestration@latest setup --force
+npx @orijinmain/codex-orchestration setup --dry-run
+npx @orijinmain/codex-orchestration setup --force
 ```
 
 Every replaced file or directory receives a timestamped sibling backup. Configuration updates back up the complete existing `config.toml`. No package lifecycle script modifies the Codex environment; changes happen only after an explicit `setup` command.
@@ -25,7 +25,7 @@ Every replaced file or directory receives a timestamped sibling backup. Configur
 Check an installation without changing it:
 
 ```bash
-npx @orijinmain/codex-orchestration@latest status
+npx @orijinmain/codex-orchestration status
 ```
 
 Run `setup` again to update an existing installation. It remains conservative: differing skill or agent files stop the update until you review the conflicts and explicitly use `--force`.
