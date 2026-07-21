@@ -10,51 +10,40 @@ Reusable agent skills maintained by [orijinmain](https://github.com/orijinmain).
 
 ## Install
 
-Install and configure the orchestration skill, custom agents, managed policy, and Codex settings with one explicit command:
+Install the complete orchestration setup—the skill, custom agents, managed policy, and required Codex settings—with one command:
 
 ```bash
-npx @orijinmain/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration setup
 ```
 
-The command previews its plan and asks before writing. It backs up every replaced file or directory. Check an existing installation without changing it:
+This is the official full-install path. The command previews its plan and asks before writing, preserves unrelated configuration, and backs up every replaced file or directory. Check an installation without changing it:
 
 ```bash
-npx @orijinmain/codex-orchestration@latest status
+npx @orijinmain/codex-orchestration status
 ```
 
-### Skill-only installation
+Start a new Codex task after setup so the installed guidance and custom agents are loaded.
 
-Interactively browse the skills in this repository:
+### Optional skill-only installation
 
-```bash
-npx skills@latest add orijinmain/skills
-```
-
-Install the orchestration skill globally for Codex without prompts:
+Use the open `skills` CLI when you want only the reusable skill folder:
 
 ```bash
-npx skills@latest add orijinmain/skills \
+npx skills add https://github.com/orijinmain/skills \
   --skill orchestrate-codex-agents \
   --agent codex \
   --global \
   --yes
 ```
 
-The `skills` CLI installs only the reusable workflow. For an offline or manual configuration, its bundled fallback script installs the Terra and Luna profiles and managed policy:
-
-```bash
-python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py --dry-run
-python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py
-```
-
-The fallback script does not edit `config.toml`; merge `assets/config.snippet.toml` manually. The npm bootstrap performs that merge while preserving unrelated settings. Start a new Codex task after either installation path.
+This does not install the Terra and Luna custom-agent profiles or update `AGENTS.md` and `config.toml`; use the official bootstrap above for a complete installation.
 
 ## Update
 
 Rerun the bootstrap to update the complete installation:
 
 ```bash
-npx @orijinmain/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration setup
 ```
 
 Existing differing skill or agent files are reported as conflicts. After reviewing them, `setup --force` creates timestamped backups and replaces only the managed targets.
