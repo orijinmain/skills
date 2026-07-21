@@ -33,7 +33,7 @@ Keep Sol responsible for requirements, decomposition, authority, conflict resolu
 When the user asks to configure a fresh environment, prefer the public bootstrap because it installs the skill, agents, managed policy, and configuration together with conflict checks and backups:
 
 ```bash
-npx @jjinkang/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration@latest setup
 ```
 
 Use the bundled installer as an offline or manual fallback:

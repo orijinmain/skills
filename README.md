@@ -1,6 +1,6 @@
 # skills
 
-Reusable agent skills maintained by [jjinkang](https://github.com/jjinkang). Each skill is self-contained under `skills/` and can be discovered and installed with the open [`skills` CLI](https://github.com/vercel-labs/skills).
+Reusable agent skills maintained by [orijinmain](https://github.com/orijinmain). Each skill is self-contained under `skills/` and can be discovered and installed with the open [`skills` CLI](https://github.com/vercel-labs/skills).
 
 ## Catalog
 
@@ -13,13 +13,13 @@ Reusable agent skills maintained by [jjinkang](https://github.com/jjinkang). Eac
 Install and configure the orchestration skill, custom agents, managed policy, and Codex settings with one explicit command:
 
 ```bash
-npx @jjinkang/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration@latest setup
 ```
 
 The command previews its plan and asks before writing. It backs up every replaced file or directory. Check an existing installation without changing it:
 
 ```bash
-npx @jjinkang/codex-orchestration@latest status
+npx @orijinmain/codex-orchestration@latest status
 ```
 
 ### Skill-only installation
@@ -27,13 +27,13 @@ npx @jjinkang/codex-orchestration@latest status
 Interactively browse the skills in this repository:
 
 ```bash
-npx skills@latest add jjinkang/skills
+npx skills@latest add orijinmain/skills
 ```
 
 Install the orchestration skill globally for Codex without prompts:
 
 ```bash
-npx skills@latest add jjinkang/skills \
+npx skills@latest add orijinmain/skills \
   --skill orchestrate-codex-agents \
   --agent codex \
   --global \
@@ -54,7 +54,7 @@ The fallback script does not edit `config.toml`; merge `assets/config.snippet.to
 Rerun the bootstrap to update the complete installation:
 
 ```bash
-npx @jjinkang/codex-orchestration@latest setup
+npx @orijinmain/codex-orchestration@latest setup
 ```
 
 Existing differing skill or agent files are reported as conflicts. After reviewing them, `setup --force` creates timestamped backups and replaces only the managed targets.
