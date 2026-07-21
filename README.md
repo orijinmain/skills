@@ -10,6 +10,20 @@ Reusable agent skills maintained by [jjinkang](https://github.com/jjinkang). Eac
 
 ## Install
 
+Install and configure the orchestration skill, custom agents, managed policy, and Codex settings with one explicit command:
+
+```bash
+npx @jjinkang/codex-orchestration@latest setup
+```
+
+The command previews its plan and asks before writing. It backs up every replaced file or directory. Check an existing installation without changing it:
+
+```bash
+npx @jjinkang/codex-orchestration@latest status
+```
+
+### Skill-only installation
+
 Interactively browse the skills in this repository:
 
 ```bash
@@ -26,26 +40,24 @@ npx skills@latest add jjinkang/skills \
   --yes
 ```
 
-The skill itself is installed by the `skills` CLI. Its bundled setup script separately installs the reusable Terra and Luna agent profiles and the managed orchestration policy:
+The `skills` CLI installs only the reusable workflow. For an offline or manual configuration, its bundled fallback script installs the Terra and Luna profiles and managed policy:
 
 ```bash
 python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py --dry-run
 python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py
 ```
 
-Review `~/.codex/skills/orchestrate-codex-agents/assets/config.snippet.toml`, merge its settings into `~/.codex/config.toml`, and start a new Codex task so the configuration is reloaded.
+The fallback script does not edit `config.toml`; merge `assets/config.snippet.toml` manually. The npm bootstrap performs that merge while preserving unrelated settings. Start a new Codex task after either installation path.
 
 ## Update
 
-Update the installed skill, then preview and apply any portable policy changes:
+Rerun the bootstrap to update the complete installation:
 
 ```bash
-npx skills update orchestrate-codex-agents --global --yes
-python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py --dry-run --force
-python3 ~/.codex/skills/orchestrate-codex-agents/scripts/install.py --force
+npx @jjinkang/codex-orchestration@latest setup
 ```
 
-Forced policy updates create timestamped backups before replacing differing managed files.
+Existing differing skill or agent files are reported as conflicts. After reviewing them, `setup --force` creates timestamped backups and replaces only the managed targets.
 
 ## Develop
 
@@ -53,6 +65,7 @@ Add each new skill as `skills/<skill-name>/SKILL.md`, keeping its scripts, refer
 
 ```bash
 python3 scripts/validate_repo.py
+npm --prefix packages/codex-orchestration-cli test
 ```
 
 The repository intentionally does not declare a license yet. Add one only after choosing the terms under which others may copy, modify, and redistribute the skills.

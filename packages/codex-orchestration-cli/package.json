@@ -1,0 +1,40 @@
+{
+  "name": "@jjinkang/codex-orchestration",
+  "version": "0.1.0",
+  "description": "Safely install the jjinkang Codex orchestration skill, custom agents, policy, and configuration.",
+  "type": "module",
+  "bin": {
+    "codex-orchestration": "bin/codex-orchestration.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "src/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ./scripts/build-payload.js",
+    "prepack": "npm run build",
+    "pretest": "npm run build",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jjinkang/skills.git",
+    "directory": "packages/codex-orchestration-cli"
+  },
+  "keywords": [
+    "codex",
+    "agent-skills",
+    "multi-agent",
+    "orchestration"
+  ],
+  "author": "jjinkang",
+  "license": "UNLICENSED"
+}

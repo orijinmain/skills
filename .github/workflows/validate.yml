@@ -64,5 +64,16 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Test orchestration bootstrap
+        working-directory: packages/codex-orchestration-cli
+        run: npm test
+
+      - name: Verify npm package metadata and contents
+        working-directory: packages/codex-orchestration-cli
+        run: |
+          npm pkg fix
+          git diff --exit-code -- package.json
+          npm pack --dry-run
+
       - name: Verify skills CLI discovery
         run: DISABLE_TELEMETRY=1 npx --yes skills@latest add . --list
