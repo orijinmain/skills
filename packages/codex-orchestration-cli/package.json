@@ -1,22 +1,33 @@
 {
-  "name": "@orijinmain/codex-orchestration",
-  "version": "0.1.0",
-  "description": "Safely install the Codex orchestration skill, custom agents, policy, and configuration.",
+  "name": "@orijinmain/corch",
+  "version": "0.2.0",
+  "description": "A detachable Codex orchestration plugin with native automatic worker selection.",
   "type": "module",
   "bin": {
-    "codex-orchestration": "bin/codex-orchestration.js"
+    "corch": "dist/bin/codex-orchestration.js"
   },
   "files": [
-    "bin/",
-    "dist/",
-    "src/",
+    ".codex-plugin/",
+    "dist/bin/",
+    "dist/hooks/",
+    "dist/src/",
+    "hooks/hooks.json",
+    "runtime/",
+    "schemas/codex-hooks/LICENSE.openai-codex",
+    "schemas/codex-hooks/README.md",
+    "skills/",
     "README.md"
   ],
   "scripts": {
-    "build": "node ./scripts/build-payload.js",
+    "generate:hook-types": "json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/session-start.command.input.schema.json --output hooks/generated/session-start-input.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/session-start.command.output.schema.json --output hooks/generated/session-start-output.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/subagent-start.command.input.schema.json --output hooks/generated/subagent-start-input.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/subagent-start.command.output.schema.json --output hooks/generated/subagent-start-output.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/pre-tool-use.command.input.schema.json --output hooks/generated/pre-tool-use-input.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/pre-tool-use.command.output.schema.json --output hooks/generated/pre-tool-use-output.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/user-prompt-submit.command.input.schema.json --output hooks/generated/user-prompt-submit-input.ts && json2ts --unknownAny --no-enableConstEnums --input schemas/codex-hooks/rust-v0.144.5/user-prompt-submit.command.output.schema.json --output hooks/generated/user-prompt-submit-output.ts",
+    "check:hook-types": "npm run generate:hook-types && git diff --exit-code -- hooks/generated",
+    "prebuild": "npm run generate:hook-types && tsc --build --clean",
+    "build": "tsc --build && node ./dist/scripts/build-payload.js",
     "prepack": "npm run build",
     "pretest": "npm run build",
-    "test": "node --test"
+    "test": "node --test ./dist/test/hooks.test.js ./dist/test/installer.test.js",
+    "pretypecheck": "npm run generate:hook-types",
+    "typecheck": "tsc --build --pretty false"
   },
   "engines": {
     "node": ">=18"
@@ -30,11 +41,17 @@
     "directory": "packages/codex-orchestration-cli"
   },
   "keywords": [
+    "corch",
     "codex",
     "agent-skills",
     "multi-agent",
     "orchestration"
   ],
   "author": "orijinmain",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^18.19.130",
+    "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^5.9.3"
+  }
 }

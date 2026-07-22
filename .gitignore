@@ -1,6 +1,9 @@
 __pycache__/
 *.py[cod]
 .venv/
+node_modules/
 packages/codex-orchestration-cli/dist/
+packages/codex-orchestration-cli/runtime/
+packages/codex-orchestration-cli/skills/
 *.tgz
 .DS_Store

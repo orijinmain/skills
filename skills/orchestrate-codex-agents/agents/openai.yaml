@@ -1,4 +1,0 @@
-interface:
-  display_name: "Codex Agent Orchestrator"
-  short_description: "Route, escalate, and verify Codex subagent work"
-  default_prompt: "Use $orchestrate-codex-agents to route this task across Sol, Terra, and Luna with safe escalation."

@@ -1,60 +1,101 @@
-# skills
+# orijinmain Skills
 
-Reusable agent skills maintained by [orijinmain](https://github.com/orijinmain). Each skill is self-contained under `skills/` and can be discovered and installed with the open [`skills` CLI](https://github.com/vercel-labs/skills).
+Reusable Codex skills and plugins maintained by [orijinmain](https://github.com/orijinmain).
 
-## Catalog
+## Corch for Codex
 
-| Skill | Purpose |
+Corch is a detachable `codex-orchestration` plugin for adaptive root-agent orchestration. Its canonical top-level role is the model-independent `orchestrator`. Bounded work is delegated to task-oriented workers only when specialization, parallelism, or context isolation adds material value.
+
+The plugin is self-contained. It does not edit global `AGENTS.md`, copy custom-agent TOML files into `~/.codex/agents`, or alter `config.toml`.
+
+### Install the plugin
+
+Add this repository as a Codex marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add https://github.com/orijinmain/skills.git
+codex plugin add codex-orchestration@orijinmain-skills
+```
+
+Start a new Codex task afterward, run `/hooks`, review the bundled commands, and trust them. The default orchestration mode is `full`; no setup command is required.
+
+The packaged CLI remains an optional convenience that performs the same plugin installation and safely migrates an owned earlier mode configuration:
+
+```bash
+npx @orijinmain/corch setup
+```
+
+Use `--mode off|lite|full|ultra` only when you want to choose a persistent default during that setup.
+
+### Virtual workers and automatic selection
+
+The root agent delegates with stable Corch role names encoded in `spawn_agent` task names. A `PreToolUse` hook reads `<role>__<task>` and prepends the matching contract immediately before execution; `SubagentStart` adds the shared worker policy.
+
+| Virtual role | Task-name form | Intended work |
+| --- | --- | --- |
+| `lookup` | `lookup__<task>` | Exact, low-risk reads and transformations |
+| `explore` | `explore__<task>` | Multi-file discovery and evidence gathering |
+| `build` | `build__<task>` | Bounded implementation and tests |
+| `review` | `review__<task>` | Independent review and reproduction |
+
+Corch does not depend on the conditional `agent_type` field. It intentionally omits `model` and `reasoning_effort` by default, so Codex chooses a task-appropriate balance of intelligence and speed using its native subagent selection. Role names describe work rather than imply a model. Explicit overrides already supplied by the spawn surface are preserved, leaving room for a fixed mode later.
+
+The selected model is available to the `SubagentStart` hook and is included in its diagnostic message. The current hook API does not expose the selected reasoning effort, so Corch cannot reliably log or assert that value. See [Choosing models and reasoning](https://learn.chatgpt.com/docs/agent-configuration/subagents#choosing-models-and-reasoning) for the native behavior.
+
+Separate files under `~/.codex/agents` are not required.
+
+### Modes
+
+| Mode | Behavior |
 | --- | --- |
-| [`orchestrate-codex-agents`](skills/orchestrate-codex-agents/SKILL.md) | Route bounded work from a GPT-5.6 Sol orchestrator to Terra and Luna workers, with automatic escalation, one-writer control, and verification gates. |
+| `off` | Disable only the plugin's automatic orchestration. |
+| `lite` | Delegate rarely, prefer serial work, and review selectively. |
+| `full` | Apply adaptive routing, useful read parallelism, and verification gates. |
+| `ultra` | Decompose substantial work earlier and independently review important writes. |
 
-## Install
+Change only the current session with `$corch off|lite|full|ultra`, inspect it with `$corch status`, or set the default for new sessions with `$corch default off|lite|full|ultra`. On surfaces where a `$` mention is inconvenient, use the exact fallback `corch ...` form. Persistent state is stored in the plugin's own data directory.
 
-Install the complete orchestration setup—the skill, custom agents, managed policy, and required Codex settings—with one command:
+`off` cannot disable orchestration instructions that already exist outside the plugin, such as an unmarked block in global `AGENTS.md`.
+
+### Inspect, migrate, or remove
 
 ```bash
-npx @orijinmain/codex-orchestration setup
+npx @orijinmain/corch status
+npx @orijinmain/corch uninstall
 ```
 
-This is the official full-install path. The command previews its plan and asks before writing, preserves unrelated configuration, and backs up every replaced file or directory. Check an installation without changing it:
+For repeated maintenance, install the CLI globally and then run it explicitly:
 
 ```bash
-npx @orijinmain/codex-orchestration status
+npm install -g @orijinmain/corch
+corch setup
+corch status
 ```
 
-Start a new Codex task after setup so the installed guidance and custom agents are loaded.
+Installing the npm package globally installs the `corch` command; `corch setup` is what installs the Codex plugin. Corch retains the `codex-orchestration` plugin ID and uses `$corch` controls.
 
-### Optional skill-only installation
+`setup` migrates an owned earlier mode config into plugin data. Unrelated files and marketplace state are preserved. `uninstall` removes the plugin and its owned data while retaining the marketplace for other plugins.
 
-Use the open `skills` CLI when you want only the reusable skill folder:
+## Skill-only use
+
+Corch exposes one public skill at [`skills/corch`](skills/corch/SKILL.md). Its implicit invocation is disabled so an installed plugin in `off` mode cannot reactivate itself. Runtime policies and deterministic helpers live under `runtime/` and are packaged as internal plugin resources rather than additional discoverable skills.
+
+Install only the reusable control and guidance skill, without Hooks or automatic virtual-worker routing, with:
 
 ```bash
 npx skills add https://github.com/orijinmain/skills \
-  --skill orchestrate-codex-agents \
+  --skill corch \
   --agent codex \
   --global \
   --yes
 ```
 
-This does not install the Terra and Luna custom-agent profiles or update `AGENTS.md` and `config.toml`; use the official bootstrap above for a complete installation.
-
-## Update
-
-Rerun the bootstrap to update the complete installation:
-
-```bash
-npx @orijinmain/codex-orchestration setup
-```
-
-Existing differing skill or agent files are reported as conflicts. After reviewing them, `setup --force` creates timestamped backups and replaces only the managed targets.
-
-## Develop
-
-Add each new skill as `skills/<skill-name>/SKILL.md`, keeping its scripts, references, assets, and agent metadata inside the same directory. Validate the complete catalog before committing:
+## Development
 
 ```bash
 python3 scripts/validate_repo.py
 npm --prefix packages/codex-orchestration-cli test
+npm pack ./packages/codex-orchestration-cli --dry-run
 ```
 
-The repository intentionally does not declare a license yet. Add one only after choosing the terms under which others may copy, modify, and redistribute the skills.
+The repository intentionally does not declare a public license yet.

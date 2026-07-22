@@ -1,0 +1,35 @@
+{
+  "name": "codex-orchestration",
+  "version": "0.2.0",
+  "description": "Detachable root-agent orchestration with task-oriented roles and native automatic worker selection.",
+  "author": {
+    "name": "orijinmain",
+    "url": "https://github.com/orijinmain"
+  },
+  "homepage": "https://github.com/orijinmain/skills",
+  "repository": "https://github.com/orijinmain/skills",
+  "keywords": [
+    "codex",
+    "multi-agent",
+    "orchestration",
+    "subagents"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Orchestration",
+    "shortDescription": "Adaptive root orchestration with functional workers",
+    "longDescription": "Routes task-oriented lookup, explore, build, and review roles while Codex selects worker intelligence and effort automatically and the root orchestrator retains final authority.",
+    "developerName": "orijinmain",
+    "category": "Productivity",
+    "capabilities": [
+      "Subagent orchestration",
+      "Native automatic worker selection",
+      "Automatic escalation",
+      "Verification gates"
+    ],
+    "websiteURL": "https://github.com/orijinmain/skills",
+    "defaultPrompt": [
+      "Use $corch status to inspect orchestration, or ask Corch to route this task."
+    ]
+  }
+}

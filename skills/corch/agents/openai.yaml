@@ -1,0 +1,6 @@
+interface:
+  display_name: "Corch"
+  short_description: "Control and inspect Codex orchestration"
+  default_prompt: "Use $corch status to inspect the current orchestration mode."
+policy:
+  allow_implicit_invocation: false

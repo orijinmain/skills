@@ -1,0 +1,56 @@
+{
+  "description": "Activate detachable Codex orchestration, resolve virtual worker profiles, and track session mode.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent|spawn_agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"$PLUGIN_ROOT/dist/hooks/pre-tool-use.js\" || true",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:PLUGIN_ROOT\\dist\\hooks\\pre-tool-use.js\" }; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"$PLUGIN_ROOT/dist/hooks/session-start.js\" || true",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:PLUGIN_ROOT\\dist\\hooks\\session-start.js\" }; exit 0",
+            "timeout": 5,
+            "statusMessage": "Loading orchestration mode"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"$PLUGIN_ROOT/dist/hooks/subagent-start.js\" || true",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:PLUGIN_ROOT\\dist\\hooks\\subagent-start.js\" }; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 && node \"$PLUGIN_ROOT/dist/hooks/user-prompt-submit.js\" || true",
+            "commandWindows": "if (Get-Command node -ErrorAction SilentlyContinue) { node \"$env:PLUGIN_ROOT\\dist\\hooks\\user-prompt-submit.js\" }; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

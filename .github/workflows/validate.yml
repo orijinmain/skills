@@ -24,7 +24,7 @@ jobs:
 
       - name: Test deterministic routing
         run: |
-          python3 skills/orchestrate-codex-agents/scripts/route_task.py \
+          python3 runtime/scripts/route_task.py \
             --kind write \
             --scope single \
             --risk medium \
@@ -35,8 +35,20 @@ jobs:
           from pathlib import Path
 
           result = json.loads(Path("/tmp/route.json").read_text(encoding="utf-8"))
-          assert result["initial_agent"] == "terra_builder"
-          assert result["required_follow_up"] == "terra_reviewer"
+          assert result["initial_agent"] == "build"
+          assert result["required_follow_up"] == "review"
+          PY
+          python3 runtime/scripts/route_task.py \
+            --kind read \
+            --flags security \
+            > /tmp/hard-gate-route.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          result = json.loads(Path("/tmp/hard-gate-route.json").read_text(encoding="utf-8"))
+          assert result["initial_agent"] == "orchestrator"
+          assert result["hard_gate"] is True
           PY
 
       - name: Test handoff validation
@@ -51,18 +63,44 @@ jobs:
             'RISK: low' \
             'VALIDATION: pass' \
             'FILES_TOUCHED: none' \
-            | python3 skills/orchestrate-codex-agents/scripts/validate_handoff.py
+            | python3 runtime/scripts/validate_handoff.py
+          printf '%s\n' \
+            'STATUS: ESCALATE' \
+            'RECOMMENDED_NEXT: orchestrator' \
+            'REASON: root handoff requires root ownership' \
+            'COMPLETED_WORK: collected evidence' \
+            'EVIDENCE: command output' \
+            'NEXT_SCOPE: resolve the security decision' \
+            'RISK: high' \
+            'VALIDATION: not_run' \
+            'FILES_TOUCHED: none' \
+            | python3 runtime/scripts/validate_handoff.py --json \
+            > /tmp/root-handoff.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
 
-      - name: Test installer idempotency
-        run: |
-          target="$(mktemp -d)"
-          python3 skills/orchestrate-codex-agents/scripts/install.py --codex-home "$target"
-          python3 skills/orchestrate-codex-agents/scripts/install.py --codex-home "$target" --dry-run
+          result = json.loads(Path("/tmp/root-handoff.json").read_text(encoding="utf-8"))
+          assert result["valid"] is True
+          assert result["fields"]["RECOMMENDED_NEXT"] == "orchestrator"
+          PY
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Install Node.js dependencies
+        working-directory: packages/codex-orchestration-cli
+        run: npm ci
+
+      - name: Verify generated Codex hook types
+        working-directory: packages/codex-orchestration-cli
+        run: npm run check:hook-types
+
+      - name: Type-check orchestration package
+        working-directory: packages/codex-orchestration-cli
+        run: npm run typecheck
 
       - name: Test orchestration bootstrap
         working-directory: packages/codex-orchestration-cli
