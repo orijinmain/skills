@@ -1,6 +1,6 @@
 {
   "name": "codex-orchestration",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Detachable root-agent orchestration with task-oriented roles and native automatic worker selection.",
   "author": {
     "name": "orijinmain",

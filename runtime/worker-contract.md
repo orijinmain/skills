@@ -6,6 +6,7 @@ End the report with exactly these fields:
 
 ```text
 STATUS: COMPLETE | ESCALATE
+MODEL: exact model slug from the injected Worker model line
 RECOMMENDED_NEXT: none | explore | build | review | orchestrator
 REASON: completion or escalation reason
 COMPLETED_WORK: work already completed
@@ -17,3 +18,4 @@ FILES_TOUCHED: comma-separated paths, or none
 ```
 
 Use `COMPLETE` with `RECOMMENDED_NEXT: none`. Use `ESCALATE` with a non-`none` recommendation and actionable `NEXT_SCOPE`.
+Copy `MODEL` exactly from the injected `Worker model reported by Codex:` line. Do not infer, shorten, or translate it.

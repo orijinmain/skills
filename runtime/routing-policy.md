@@ -105,6 +105,7 @@ Require every worker response to end with:
 
 ```text
 STATUS: COMPLETE | ESCALATE
+MODEL: exact model slug from the injected Worker model line
 RECOMMENDED_NEXT: none | explore | build | review | orchestrator
 REASON: concise completion or escalation reason
 COMPLETED_WORK: work already completed
@@ -116,6 +117,7 @@ FILES_TOUCHED: comma-separated paths, or none
 ```
 
 For `COMPLETE`, require `RECOMMENDED_NEXT: none`. For `ESCALATE`, require a non-`none` recommendation and an actionable `NEXT_SCOPE`.
+Require workers to copy `MODEL` exactly from the injected `Worker model reported by Codex:` line; never infer a missing value. When integrating delegated results, include a compact worker-to-model mapping based on those handoff fields.
 
 Validate machine-consumed handoffs with `scripts/validate_handoff.py`.
 

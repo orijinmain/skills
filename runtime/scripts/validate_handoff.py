@@ -11,6 +11,7 @@ from typing import Dict, List
 
 REQUIRED_FIELDS = (
     "STATUS",
+    "MODEL",
     "RECOMMENDED_NEXT",
     "REASON",
     "COMPLETED_WORK",

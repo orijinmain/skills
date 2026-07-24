@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import {
+  appendFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,6 +25,7 @@ import {
   legacyConfigPath,
   readDefaultMode,
   readSessionMode,
+  readWorkerObservations,
   writeDefaultMode,
   writeSessionMode,
 } from "../hooks/lib/state.js";
@@ -247,7 +256,8 @@ test("ordinary prompts are silent and exact controls report or change state", as
   assert.equal(status.continue, false);
   assert.match(status.systemMessage, /session=full, default=full/);
   assert.match(status.systemMessage, /worker-selection=auto/);
-  assert.match(status.systemMessage, /reasoning effort is not exposed to hooks/);
+  assert.match(status.systemMessage, /Recent workers: none recorded/);
+  assert.match(status.systemMessage, /Reasoning effort is not exposed to hooks/);
   assert.equal(status.stopReason, status.systemMessage);
 
   const changed = requireControlOutput(await handleUserPromptSubmit(
@@ -339,10 +349,22 @@ test("off mode does not inject a contract into ordinary built-in workers", async
   await writeSessionMode("parent", "off", environment);
   assert.equal(
     await handleSubagentStart(
-      { session_id: "parent", agent_type: "worker", model: "auto-selected-model" },
+      {
+        session_id: "parent",
+        agent_id: "worker-off",
+        agent_type: "worker",
+        model: "auto-selected-model",
+        turn_id: "turn-off",
+      },
       environment,
     ),
     null,
+  );
+  assert.deepEqual(
+    (await readWorkerObservations("parent", environment)).map(({ agentId, model }) => (
+      { agentId, model }
+    )),
+    [{ agentId: "worker-off", model: "auto-selected-model" }],
   );
 });
 
@@ -481,7 +503,13 @@ test("off mode keeps explicitly invoked virtual workers usable", async (t) => {
   assert.match(updated.message ?? "", /# Worker Contract/);
   assert.match(updated.message ?? "", /ORIGINAL ASSIGNMENT\nmake the bounded fix$/);
   const worker = await handleSubagentStart(
-    { session_id: "parent", agent_type: "default", model: "auto-selected-model" },
+    {
+      session_id: "parent",
+      agent_id: "worker-explicit",
+      agent_type: "default",
+      model: "auto-selected-model",
+      turn_id: "turn-explicit",
+    },
     environment,
   );
   assert.equal(worker, null);
@@ -492,7 +520,13 @@ test("SubagentStart reports the selected model but does not infer a virtual role
   const { environment } = await fixture(t);
   await writeSessionMode("parent", "full", environment);
   const worker = requireContextOutput(await handleSubagentStart(
-    { session_id: "parent", agent_type: "worker", model: "auto-selected-model" },
+    {
+      session_id: "parent",
+      agent_id: "worker-1",
+      agent_type: "worker",
+      model: "auto-selected-model",
+      turn_id: "turn-1",
+    },
     environment,
   ));
   assert.match(worker.hookSpecificOutput.additionalContext, /auto-selected-model/);
@@ -500,6 +534,117 @@ test("SubagentStart reports the selected model but does not infer a virtual role
   assert.match(worker.hookSpecificOutput.additionalContext, /parent orchestrator assignment/);
   assert.doesNotMatch(worker.hookSpecificOutput.additionalContext, /VIRTUAL ROLE:/);
   assert.match(worker.systemMessage, /effort is not exposed to hooks/);
+});
+
+
+test("status lists recent worker models from the current session newest first", async (t) => {
+  const { environment } = await fixture(t);
+  await writeSessionMode("parent", "full", environment);
+  for (let index = 1; index <= 6; index += 1) {
+    await handleSubagentStart(
+      {
+        session_id: "parent",
+        agent_id: `worker-${index}`,
+        agent_type: index % 2 === 0 ? "worker" : "explorer",
+        model: `gpt-${index}`,
+        turn_id: `turn-${index}`,
+      },
+      environment,
+    );
+  }
+  await handleSubagentStart(
+    {
+      session_id: "other",
+      agent_id: "worker-other",
+      agent_type: "worker",
+      model: "gpt-other",
+      turn_id: "turn-other",
+    },
+    environment,
+  );
+
+  const observations = await readWorkerObservations("parent", environment);
+  assert.deepEqual(
+    observations.map(({ agentId, agentType, model, turnId }) => ({
+      agentId,
+      agentType,
+      model,
+      turnId,
+    })),
+    [
+      {
+        agentId: "worker-6",
+        agentType: "worker",
+        model: "gpt-6",
+        turnId: "turn-6",
+      },
+      {
+        agentId: "worker-5",
+        agentType: "explorer",
+        model: "gpt-5",
+        turnId: "turn-5",
+      },
+      {
+        agentId: "worker-4",
+        agentType: "worker",
+        model: "gpt-4",
+        turnId: "turn-4",
+      },
+      {
+        agentId: "worker-3",
+        agentType: "explorer",
+        model: "gpt-3",
+        turnId: "turn-3",
+      },
+      {
+        agentId: "worker-2",
+        agentType: "worker",
+        model: "gpt-2",
+        turnId: "turn-2",
+      },
+    ],
+  );
+
+  const status = requireControlOutput(await handleUserPromptSubmit(
+    { session_id: "parent", prompt: "$corch status" },
+    environment,
+  ));
+  assert.match(status.systemMessage, /Recent workers \(newest first\):/);
+  assert.ok(status.systemMessage.indexOf("model=gpt-6")
+    < status.systemMessage.indexOf("model=gpt-5"));
+  assert.doesNotMatch(status.systemMessage, /model=gpt-1(?:\s|$)/);
+  assert.doesNotMatch(status.systemMessage, /gpt-other/);
+  assert.match(status.systemMessage, /Reasoning effort is not exposed to hooks/);
+});
+
+
+test("a corrupt observation line does not hide valid worker models", async (t) => {
+  const { environment } = await fixture(t);
+  await handleSubagentStart(
+    {
+      session_id: "parent",
+      agent_id: "worker-valid",
+      agent_type: "worker",
+      model: "gpt-valid",
+      turn_id: "turn-valid",
+    },
+    environment,
+  );
+  const observationDirectory = join(environment.PLUGIN_DATA, "worker-observations");
+  const observationFiles = await readdir(observationDirectory);
+  assert.equal(observationFiles.length, 1);
+  const observationFile = observationFiles[0];
+  assert.ok(observationFile);
+  await appendFile(join(observationDirectory, observationFile), "{incomplete\n", "utf8");
+
+  const observations = await readWorkerObservations("parent", environment);
+  assert.equal(observations.length, 1);
+  assert.equal(observations[0]?.model, "gpt-valid");
+  const status = requireControlOutput(await handleUserPromptSubmit(
+    { session_id: "parent", prompt: "$corch status" },
+    environment,
+  ));
+  assert.match(status.systemMessage, /model=gpt-valid/);
 });
 
 
@@ -535,7 +680,13 @@ test("hook output stays comfortably below the model-visible output cap", async (
     environment,
   ));
   const worker = requireContextOutput(await handleSubagentStart(
-    { session_id: "size", agent_type: "default", model: "auto-selected-model" },
+    {
+      session_id: "size",
+      agent_id: "worker-size",
+      agent_type: "default",
+      model: "auto-selected-model",
+      turn_id: "turn-size",
+    },
     environment,
   ));
   assert.ok(JSON.stringify(session).length < 8000);

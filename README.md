@@ -10,6 +10,8 @@ The plugin is self-contained. It does not edit global `AGENTS.md`, copy custom-a
 
 ### Install the plugin
 
+Corch v0.2.x is developed and tested against Codex Hook schemas from CLI 0.144.5. Use Codex CLI 0.144.5 or later; the latest release is recommended.
+
 Add this repository as a Codex marketplace and install the plugin:
 
 ```bash
@@ -40,7 +42,7 @@ The root agent delegates with stable Corch role names encoded in `spawn_agent` t
 
 Corch does not depend on the conditional `agent_type` field. It intentionally omits `model` and `reasoning_effort` by default, so Codex chooses a task-appropriate balance of intelligence and speed using its native subagent selection. Role names describe work rather than imply a model. Explicit overrides already supplied by the spawn surface are preserved, leaving room for a fixed mode later.
 
-The selected model is available to the `SubagentStart` hook and is included in its diagnostic message. The current hook API does not expose the selected reasoning effort, so Corch cannot reliably log or assert that value. See [Choosing models and reasoning](https://learn.chatgpt.com/docs/agent-configuration/subagents#choosing-models-and-reasoning) for the native behavior.
+The selected model is available to the `SubagentStart` hook. Corch records that runtime value in its plugin data and includes recent worker models in `$corch status`; every structured worker handoff also carries an exact `MODEL` field for the orchestrator's final summary. The current hook API does not expose the selected reasoning effort, so Corch cannot reliably log or assert that value. See [Choosing models and reasoning](https://learn.chatgpt.com/docs/agent-configuration/subagents#choosing-models-and-reasoning) for the native behavior.
 
 Separate files under `~/.codex/agents` are not required.
 
@@ -53,7 +55,7 @@ Separate files under `~/.codex/agents` are not required.
 | `full` | Apply adaptive routing, useful read parallelism, and verification gates. |
 | `ultra` | Decompose substantial work earlier and independently review important writes. |
 
-Change only the current session with `$corch off|lite|full|ultra`, inspect it with `$corch status`, or set the default for new sessions with `$corch default off|lite|full|ultra`. On surfaces where a `$` mention is inconvenient, use the exact fallback `corch ...` form. Persistent state is stored in the plugin's own data directory.
+Change only the current session with `$corch off|lite|full|ultra`, inspect it and the five most recent worker models with `$corch status`, or set the default for new sessions with `$corch default off|lite|full|ultra`. On surfaces where a `$` mention is inconvenient, use the exact fallback `corch ...` form. Persistent state and per-session worker observations are stored in the plugin's own data directory.
 
 `off` cannot disable orchestration instructions that already exist outside the plugin, such as an unmarked block in global `AGENTS.md`.
 

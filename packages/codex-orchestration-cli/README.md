@@ -4,6 +4,8 @@ Corch packages a detachable Codex plugin with a model-independent `orchestrator`
 
 ## Plugin-first installation
 
+Corch v0.2.x is developed and tested against Codex Hook schemas from CLI 0.144.5. Use Codex CLI 0.144.5 or later; the latest release is recommended.
+
 The plugin works by itself; a separate setup script is not required:
 
 ```bash
@@ -22,7 +24,7 @@ Corch encodes each virtual worker role in `spawn_agent`'s `task_name` as `<role>
 | `build` | `build__<task>` | Bounded implementation and tests |
 | `review` | `review__<task>` | Independent review and reproduction |
 
-The hook does not use `agent_type` for virtual routing. It omits `model` and `reasoning_effort` by default so Codex can select both natively for the task. Role names describe work rather than imply a model. Explicit overrides already present in the spawn input are preserved. `SubagentStart` exposes the selected model, but the current hook input does not expose selected reasoning effort, so Corch cannot reliably record that value.
+The hook does not use `agent_type` for virtual routing. It omits `model` and `reasoning_effort` by default so Codex can select both natively for the task. Role names describe work rather than imply a model. Explicit overrides already present in the spawn input are preserved. `SubagentStart` exposes the selected model, which Corch records per session and requires in each worker's `MODEL` handoff field. The current hook input does not expose selected reasoning effort, so Corch cannot reliably record that value.
 
 ## Optional setup and migration CLI
 
@@ -53,7 +55,7 @@ The global npm install adds the `corch` command but does not activate the Codex 
 - `full`: adaptive routing and risk-based verification; the default.
 - `ultra`: earlier decomposition and independent review of important writes.
 
-Within Codex, use `$corch status`, `$corch off|lite|full|ultra`, or `$corch default off|lite|full|ultra`. The exact fallback `corch ...` form is also supported. Persistent defaults and session state live under the plugin data directory.
+Within Codex, use `$corch status`, `$corch off|lite|full|ultra`, or `$corch default off|lite|full|ultra`. The exact fallback `corch ...` form is also supported. `$corch status` lists the five most recent workers and their runtime-reported models for the current session. Persistent defaults, session state, and worker observations live under the plugin data directory.
 
 Corch keeps the existing plugin ID and exposes one public skill named `corch`; its policies and helpers are internal runtime resources. Use `--codex-home PATH` to target another Codex home, `--dry-run` to preview, and `--yes` for authorized non-interactive changes. No npm lifecycle script changes the Codex environment; only an explicit Corch command does.
 

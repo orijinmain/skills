@@ -19,6 +19,9 @@ import {
   type Mode,
   readDefaultMode,
   readSessionMode,
+  readWorkerObservations,
+  recordWorkerObservation,
+  type WorkerObservation,
   writeDefaultMode,
   writeSessionMode,
 } from "./state.js";
@@ -27,7 +30,7 @@ import {
 type SessionStartHandlerInput = Pick<SessionStartCommandInput, "session_id" | "source">;
 type SubagentStartHandlerInput = Pick<
   SubagentStartCommandInput,
-  "session_id" | "agent_type" | "model"
+  "session_id" | "agent_id" | "agent_type" | "model" | "turn_id"
 >;
 type PreToolUseHandlerInput = Pick<PreToolUseCommandInput, "tool_input">;
 type UserPromptSubmitHandlerInput = Pick<
@@ -38,6 +41,26 @@ type UserPromptSubmitHandlerInput = Pick<
 
 function sourceStartsFresh(source: SessionStartCommandInput["source"]): boolean {
   return source === "startup" || source === "clear";
+}
+
+
+function singleLine(value: string): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return (normalized || "unreported").slice(0, 160);
+}
+
+
+function formatWorkerSummary(observations: WorkerObservation[]): string {
+  if (observations.length === 0) {
+    return "Recent workers: none recorded for this session.";
+  }
+  const lines = observations.map((observation) => (
+    `- agent=${singleLine(observation.agentType)}`
+    + ` id=${singleLine(observation.agentId)}`
+    + ` model=${singleLine(observation.model)}`
+    + ` at=${singleLine(observation.recordedAt)}`
+  ));
+  return `Recent workers (newest first):\n${lines.join("\n")}`;
 }
 
 
@@ -70,6 +93,20 @@ export async function handleSubagentStart(
   input: SubagentStartHandlerInput,
   environment: NodeJS.ProcessEnv = process.env,
 ): Promise<SubagentStartCommandOutput | null> {
+  try {
+    await recordWorkerObservation(
+      input.session_id,
+      {
+        agentId: input.agent_id,
+        agentType: input.agent_type,
+        model: input.model || "unreported",
+        turnId: input.turn_id,
+      },
+      environment,
+    );
+  } catch {
+    // Model observability is best-effort and must never block worker startup.
+  }
   const mode = (
     await readSessionMode(input.session_id, environment)
   ) || await readDefaultMode(environment);
@@ -136,9 +173,16 @@ export async function handleUserPromptSubmit(
   ) || defaultMode;
 
   if (command.action === "status") {
+    let workerSummary: string;
+    try {
+      const observations = await readWorkerObservations(input.session_id, environment);
+      workerSummary = formatWorkerSummary(observations);
+    } catch {
+      workerSummary = "Recent workers: unavailable because the observation log could not be read.";
+    }
     return userPromptControlOutput(
       null,
-      `Codex orchestration: session=${activeMode}, default=${defaultMode}, worker-selection=auto. Models are reported at SubagentStart; reasoning effort is not exposed to hooks.`,
+      `Codex orchestration: session=${activeMode}, default=${defaultMode}, worker-selection=auto.\n${workerSummary}\nReasoning effort is not exposed to hooks.`,
     );
   }
   if (command.action === "default") {

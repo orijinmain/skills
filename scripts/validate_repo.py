@@ -166,8 +166,8 @@ def validate_plugin(repo_root: Path) -> List[str]:
 
     if not all(isinstance(value, dict) for value in (package, manifest, marketplace, hooks)):
         return errors
-    if package.get("version") != "0.2.0" or manifest.get("version") != "0.2.0":
-        errors.append("package and plugin manifest versions must both be 0.2.0")
+    if package.get("version") != "0.2.1" or manifest.get("version") != "0.2.1":
+        errors.append("package and plugin manifest versions must both be 0.2.1")
     if package.get("name") != "@orijinmain/corch":
         errors.append("unexpected npm package name")
     if package.get("bin") != {"corch": "dist/bin/codex-orchestration.js"}:
@@ -206,7 +206,7 @@ def validate_plugin(repo_root: Path) -> List[str]:
     expected_source = {
         "source": "npm",
         "package": "@orijinmain/corch",
-        "version": "^0.2.0",
+        "version": "^0.2.1",
         "registry": "https://registry.npmjs.org",
     }
     if not entry or entry.get("source") != expected_source:
@@ -341,6 +341,13 @@ def validate_plugin(repo_root: Path) -> List[str]:
     supports_canonical_root = '"orchestrator"' in handoff_script
     if not supports_canonical_root:
         errors.append("handoffs must support the orchestrator root role")
+    if '"MODEL"' not in handoff_script:
+        errors.append("handoffs must require the runtime-reported worker model")
+    worker_contract = (runtime_root / "worker-contract.md").read_text(
+        encoding="utf-8"
+    )
+    if "MODEL: exact model slug" not in worker_contract:
+        errors.append("worker contract must include the exact MODEL handoff field")
     virtual_roles = load_json(
         runtime_root / "virtual-roles.json",
         errors,

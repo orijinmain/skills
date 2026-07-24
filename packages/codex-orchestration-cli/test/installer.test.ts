@@ -155,16 +155,16 @@ if (command === "plugin marketplace list") {
       pluginId: ${JSON.stringify(PLUGIN_ID)},
       installed: true,
       enabled: state.enabled,
-      version: "0.2.0",
+      version: "0.2.1",
     }]
     : (state.installedFalseEntry ? [{
       pluginId: ${JSON.stringify(PLUGIN_ID)},
       installed: false,
       enabled: true,
-      version: "0.2.0",
+      version: "0.2.1",
     }] : []);
   const available = state.marketplace && state.available
-    ? [{ pluginId: ${JSON.stringify(PLUGIN_ID)}, installed: false, version: "0.2.0" }]
+    ? [{ pluginId: ${JSON.stringify(PLUGIN_ID)}, installed: false, version: "0.2.1" }]
     : [];
   output = { installed, available };
 } else if (command === "plugin marketplace add ${MARKETPLACE_SOURCE}") {
@@ -221,7 +221,7 @@ test("CLI help uses the Corch command name", () => {
     encoding: "utf8",
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /^corch 0\.2\.0$/m);
+  assert.match(result.stdout, /^corch 0\.2\.1$/m);
   assert.match(result.stdout, /^  corch setup \[options\]$/m);
   assert.doesNotMatch(result.stdout, /^  codex-orchestration setup/m);
 });
@@ -254,7 +254,7 @@ function pluginClient({
       }
       if (command === "plugin list --available") {
         const installedEntries = installed
-          ? [{ pluginId: PLUGIN_ID, installed: true, enabled, version: "0.2.0" }]
+          ? [{ pluginId: PLUGIN_ID, installed: true, enabled, version: "0.2.1" }]
           : (installedFalseEntry
             ? [{ pluginId: PLUGIN_ID, installed: false, enabled: true }]
             : []);
@@ -584,7 +584,7 @@ test("CLI performs fresh setup, healthy status, idempotent setup, and uninstall"
 
   const status = runCli(codexHome, mockCodex, ["status"]);
   assert.equal(status.status, 0, status.stderr);
-  assert.match(status.stdout, /Plugin: installed \(0\.2\.0, enabled\)/);
+  assert.match(status.stdout, /Plugin: installed \(0\.2\.1, enabled\)/);
   assert.match(status.stdout, /Default mode: lite/);
 
   const refresh = runCli(codexHome, mockCodex, ["setup", "--yes"]);

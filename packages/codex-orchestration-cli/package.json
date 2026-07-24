@@ -1,6 +1,6 @@
 {
   "name": "@orijinmain/corch",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A detachable Codex orchestration plugin with native automatic worker selection.",
   "type": "module",
   "bin": {
